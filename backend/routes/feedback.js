@@ -123,6 +123,7 @@ function createFeedbackRouter({ authenticateToken }) {
             if (req.user.role === 'admin') {
                 const { status, remarks, department } = req.body;
                 const updateData = {};
+                console.log('PATCH /api/feedback/:id', { status, remarks, department });
                 
                 if (status) {
                     if (!['open', 'in-progress', 'resolved', 'rejected'].includes(status)) {
@@ -145,6 +146,7 @@ function createFeedbackRouter({ authenticateToken }) {
                     }
                 });
                 
+                console.log('Updated feedback:', updatedFeedback);
                 return res.json(updatedFeedback);
             }
             

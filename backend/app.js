@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
 const JWT_SECRET = 'your_jwt_secret'; // In production, use env variable
@@ -17,6 +18,10 @@ function authenticateToken(req, res, next) {
 }
 
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3000', // or use '*' for all origins (not recommended for production)
+  credentials: true
+}));
 
 // Import router factories
 const createAuthRouter = require('./routes/auth');
@@ -39,8 +44,8 @@ app.get('/contact', (req,res) => {
     res.send('Contact page');
 });
 
-const myserver = app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+const myserver = app.listen(5000, () => {
+    console.log('Server is running on port 5000');
 });
 
 
