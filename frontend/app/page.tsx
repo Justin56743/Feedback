@@ -8,7 +8,6 @@ import { AdminDashboard } from "@/components/admin/admin-dashboard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
-import { api } from "@/lib/api"
 
 // Define a User type
 interface User {
@@ -33,8 +32,6 @@ export default function Home() {
   const handleLogin = async (token: string) => {
     localStorage.setItem("token", token)
     try {
-      // Fetch user info from backend (you may need to implement /api/me or decode token)
-      // For now, decode token payload (not secure for production)
       const payload = JSON.parse(atob(token.split(".")[1]))
       setCurrentUser(payload)
       localStorage.setItem("currentUser", JSON.stringify(payload))

@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 function createFeedbackRouter({ authenticateToken }) {
     const router = express.Router();
 
-    // POST /api/feedback - Submit new complaint/feedback (user only)
     router.post('/', authenticateToken, async (req, res) => {
         try {
             const { category, description } = req.body;
@@ -36,7 +35,6 @@ function createFeedbackRouter({ authenticateToken }) {
         }
     });
 
-    // GET /api/feedback - List all complaints/feedback
     router.get('/', authenticateToken, async (req, res) => {
         try {
             if (req.user.role === 'admin') {
@@ -77,7 +75,6 @@ function createFeedbackRouter({ authenticateToken }) {
         }
     });
 
-    // GET /api/feedback/:id - Get a single complaint/feedback
     router.get('/:id', authenticateToken, async (req, res) => {
         try {
             const id = parseInt(req.params.id);
@@ -107,7 +104,6 @@ function createFeedbackRouter({ authenticateToken }) {
         }
     });
 
-    // PATCH /api/feedback/:id - Update status (admin only) or edit (user, only if open and owner)
     router.patch('/:id', authenticateToken, async (req, res) => {
         try {
             const id = parseInt(req.params.id);
@@ -119,7 +115,6 @@ function createFeedbackRouter({ authenticateToken }) {
                 return res.status(404).json({ error: 'Feedback not found.' });
             }
             
-            // Admin can update status, remarks, department
             if (req.user.role === 'admin') {
                 const { status, remarks, department } = req.body;
                 const updateData = {};
@@ -150,7 +145,6 @@ function createFeedbackRouter({ authenticateToken }) {
                 return res.json(updatedFeedback);
             }
             
-            // User can edit only if open and owner
             if (req.user.id === feedback.userId && feedback.status === 'open') {
                 const { category, description } = req.body;
                 const updateData = {};
@@ -180,7 +174,6 @@ function createFeedbackRouter({ authenticateToken }) {
         }
     });
 
-    // DELETE /api/feedback/:id - Delete complaint (user, only if open and owner)
     router.delete('/:id', authenticateToken, async (req, res) => {
         try {
             const id = parseInt(req.params.id);

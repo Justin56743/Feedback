@@ -16,7 +16,6 @@ function createAuthRouter({ JWT_SECRET }) {
                 return res.status(400).json({ error: 'Username and password are required.' });
             }
             
-            // Check if user already exists
             const existingUser = await prisma.user.findUnique({
                 where: { username }
             });

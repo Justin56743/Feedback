@@ -86,13 +86,17 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     complaintId: number,
     status: string,
     remarks?: string,
-    department?: string
+    department?: string,
+    showAlert?: boolean
   ) => {
     const token = localStorage.getItem("token")
     if (!token) return
     try {
       await api.editFeedback(complaintId, { status, remarks, department }, token)
       loadComplaints()
+      if (showAlert) {
+        alert("Status updated successfully!")
+      }
     } catch (err) {
       // handle error
     }
@@ -323,9 +327,16 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 function ComplaintCard({ complaint, onUpdate, onRemarksUpdate, getStatusIcon, getStatusColor, getPriorityColor, departments }: any) {
   const [remarks, setRemarks] = useState(complaint.adminRemarks || complaint.remarks || "")
   const [selectedDepartment, setSelectedDepartment] = useState(complaint.assignedDepartment || complaint.department || "")
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
 
-  const handleStatusUpdate = (newStatus: string) => {
-    onUpdate(complaint.id, newStatus, remarks, selectedDepartment)
+  const handleStatusUpdate = async (newStatus: string) => {
+    const confirmMsg = `Are you sure you want to change the status to '${newStatus}'?`;
+    if (window.confirm(confirmMsg)) {
+      setUpdatingStatus(newStatus)
+      console.log(`Updating complaint #${complaint.id} status to '${newStatus}' with remarks: '${remarks}' and department: '${selectedDepartment}'`);
+      await onUpdate(complaint.id, newStatus, remarks, selectedDepartment, true);
+      setUpdatingStatus(null)
+    }
   }
 
   const handleRemarksUpdate = () => {
@@ -394,39 +405,41 @@ function ComplaintCard({ complaint, onUpdate, onRemarksUpdate, getStatusIcon, ge
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => handleStatusUpdate("Open")}
-              disabled={complaint.status === "Open"}
+              variant={updatingStatus === "open" ? "default" : "outline"}
+              onClick={() => handleStatusUpdate("open")}
+              disabled={complaint.status === "Open" || updatingStatus !== null}
             >
               Mark Open
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => handleStatusUpdate("In Progress")}
-              disabled={complaint.status === "In Progress"}
+              variant={updatingStatus === "in-progress" ? "default" : "outline"}
+              onClick={() => handleStatusUpdate("in-progress")}
+              disabled={complaint.status === "In Progress" || updatingStatus !== null}
             >
               In Progress
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => handleStatusUpdate("Resolved")}
-              disabled={complaint.status === "Resolved"}
+              variant={updatingStatus === "resolved" ? "default" : "outline"}
+              onClick={() => handleStatusUpdate("resolved")}
+              disabled={complaint.status === "Resolved" || updatingStatus !== null}
             >
               Resolve
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => handleStatusUpdate("Rejected")}
-              disabled={complaint.status === "Rejected"}
+              variant={updatingStatus === "rejected" ? "default" : "outline"}
+              onClick={() => handleStatusUpdate("rejected")}
+              disabled={complaint.status === "Rejected" || updatingStatus !== null}
             >
               Reject
             </Button>
-            <Button size="sm" onClick={handleRemarksUpdate}>
-              Update Remarks
-            </Button>
+            {updatingStatus === null && (
+              <Button size="sm" onClick={handleRemarksUpdate}>
+                Update Remarks
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
