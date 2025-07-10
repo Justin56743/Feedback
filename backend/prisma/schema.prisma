@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -28,4 +29,5 @@ model Feedback {
   userId      Int
   updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidence    String?  // File path or URL for uploaded evidence
 }

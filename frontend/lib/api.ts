@@ -11,7 +11,10 @@ export const api = {
     }),
   createFeedback: (data: any, token: string) =>
     axios.post(`${API_URL}/feedback`, data, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {})
+      },
     }),
   editFeedback: (id: number, data: any, token: string) =>
     axios.patch(`${API_URL}/feedback/${id}`, data, {

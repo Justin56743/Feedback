@@ -24,6 +24,7 @@ export function ComplaintForm({ complaint, onSubmit, onCancel }: ComplaintFormPr
     description: complaint?.description || "",
     priority: complaint?.priority || "Medium",
   })
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
 
   const categories = [
     "Infrastructure",
@@ -41,7 +42,15 @@ export function ComplaintForm({ complaint, onSubmit, onCancel }: ComplaintFormPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    const data = new FormData()
+    data.append("title", formData.title)
+    data.append("category", formData.category)
+    data.append("description", formData.description)
+    data.append("priority", formData.priority)
+    if (evidenceFile) {
+      data.append("evidence", evidenceFile)
+    }
+    onSubmit(data)
   }
 
   return (
@@ -118,6 +127,17 @@ export function ComplaintForm({ complaint, onSubmit, onCancel }: ComplaintFormPr
                 rows={6}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="evidence">Evidence (optional)</Label>
+              <Input
+                id="evidence"
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setEvidenceFile(e.target.files?.[0] || null)}
+              />
+              {evidenceFile && <div className="text-xs text-gray-500">Selected: {evidenceFile.name}</div>}
             </div>
 
             <div className="flex space-x-4">

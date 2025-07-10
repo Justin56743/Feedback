@@ -1,23 +1,44 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const multer = require('multer');
+const path = require('path');
 
 const prisma = new PrismaClient();
+
+// Set up multer for local file storage
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../uploads'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage });
 
 function createFeedbackRouter({ authenticateToken }) {
     const router = express.Router();
 
-    router.post('/', authenticateToken, async (req, res) => {
+    // Update POST / to handle file upload
+    router.post('/', authenticateToken, upload.single('evidence'), async (req, res) => {
         try {
             const { category, description } = req.body;
             if (!category || !description) {
                 return res.status(400).json({ error: 'category and description are required.' });
             }
-            
+
+            let evidencePath = null;
+            if (req.file) {
+                evidencePath = `/uploads/${req.file.filename}`;
+            }
+
             const feedback = await prisma.feedback.create({
                 data: {
                     category,
                     description,
-                    userId: req.user.id
+                    userId: req.user.id,
+                    evidence: evidencePath
                 },
                 include: {
                     user: {
@@ -27,7 +48,7 @@ function createFeedbackRouter({ authenticateToken }) {
                     }
                 }
             });
-            
+
             res.status(201).json(feedback);
         } catch (error) {
             console.error('Create feedback error:', error);
@@ -88,15 +109,15 @@ function createFeedbackRouter({ authenticateToken }) {
                     }
                 }
             });
-            
+
             if (!feedback) {
                 return res.status(404).json({ error: 'Feedback not found.' });
             }
-            
+
             if (req.user.role !== 'admin' && feedback.userId !== req.user.id) {
                 return res.status(403).json({ error: 'Access denied.' });
             }
-            
+
             res.json(feedback);
         } catch (error) {
             console.error('Get feedback error:', error);
@@ -110,16 +131,16 @@ function createFeedbackRouter({ authenticateToken }) {
             const feedback = await prisma.feedback.findUnique({
                 where: { id }
             });
-            
+
             if (!feedback) {
                 return res.status(404).json({ error: 'Feedback not found.' });
             }
-            
+
             if (req.user.role === 'admin') {
                 const { status, remarks, department } = req.body;
                 const updateData = {};
                 console.log('PATCH /api/feedback/:id', { status, remarks, department });
-                
+
                 if (status) {
                     if (!['open', 'in-progress', 'resolved', 'rejected'].includes(status)) {
                         return res.status(400).json({ error: 'Invalid status.' });
@@ -128,7 +149,7 @@ function createFeedbackRouter({ authenticateToken }) {
                 }
                 if (remarks !== undefined) updateData.remarks = remarks;
                 if (department !== undefined) updateData.department = department;
-                
+
                 const updatedFeedback = await prisma.feedback.update({
                     where: { id },
                     data: updateData,
@@ -140,18 +161,18 @@ function createFeedbackRouter({ authenticateToken }) {
                         }
                     }
                 });
-                
+
                 console.log('Updated feedback:', updatedFeedback);
                 return res.json(updatedFeedback);
             }
-            
+
             if (req.user.id === feedback.userId && feedback.status === 'open') {
                 const { category, description } = req.body;
                 const updateData = {};
-                
+
                 if (category) updateData.category = category;
                 if (description) updateData.description = description;
-                
+
                 const updatedFeedback = await prisma.feedback.update({
                     where: { id },
                     data: updateData,
@@ -163,10 +184,10 @@ function createFeedbackRouter({ authenticateToken }) {
                         }
                     }
                 });
-                
+
                 return res.json(updatedFeedback);
             }
-            
+
             return res.status(403).json({ error: 'You can only edit your own open complaints.' });
         } catch (error) {
             console.error('Update feedback error:', error);
@@ -180,18 +201,18 @@ function createFeedbackRouter({ authenticateToken }) {
             const feedback = await prisma.feedback.findUnique({
                 where: { id }
             });
-            
+
             if (!feedback) {
                 return res.status(404).json({ error: 'Feedback not found.' });
             }
-            
+
             if (req.user.id === feedback.userId && feedback.status === 'open') {
                 await prisma.feedback.delete({
                     where: { id }
                 });
                 return res.json({ message: 'Feedback deleted successfully.' });
             }
-            
+
             return res.status(403).json({ error: 'You can only delete your own open complaints.' });
         } catch (error) {
             console.error('Delete feedback error:', error);

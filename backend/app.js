@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const path = require('path');
 
 const JWT_SECRET = 'your_jwt_secret';
 
@@ -22,6 +23,7 @@ app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const createAuthRouter = require('./routes/auth');
 const createFeedbackRouter = require('./routes/feedback');

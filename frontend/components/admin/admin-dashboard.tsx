@@ -31,6 +31,7 @@ type Complaint = {
   remarks?: string
   department?: string
   user?: { username?: string }
+  evidence?: string
 }
 
 export function AdminDashboard({ currentUser }: AdminDashboardProps) {
@@ -367,6 +368,19 @@ function ComplaintCard({ complaint, onUpdate, onRemarksUpdate, getStatusIcon, ge
       </CardHeader>
       <CardContent>
         <p className="text-gray-700 mb-4">{complaint.description}</p>
+
+        {complaint.evidence && (
+          <div className="mb-4">
+            <a
+              href={`http://localhost:5000${complaint.evidence}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              View Evidence
+            </a>
+          </div>
+        )}
 
         {complaint.assignedDepartment && (
           <p className="text-sm text-gray-600 mb-4">

@@ -54,10 +54,7 @@ export function EmployeeDashboard({ currentUser }: EmployeeDashboardProps) {
           description: complaintData.description
         }, token)
       } else {
-        await api.createFeedback({
-          category: complaintData.category,
-          description: complaintData.description
-        }, token)
+        await api.createFeedback(complaintData, token)
       }
       await loadComplaints()
       setShowForm(false)
